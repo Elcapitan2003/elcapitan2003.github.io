@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sourav Kundu — Applied AI Student</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Base Styles */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #070a12;
+      color: #cbd5e1;
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Interactive Live Wallpaper Canvas (Full Screen & Visible) */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0; left: 0; width: 100%;
+      background: rgba(7, 10, 18, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 1000;
+      padding: 1rem 2rem;
+    }
+    nav > div {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav .brand { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; letter-spacing: -0.02em; }
+    nav .links a {
+      margin-left: 1.5rem;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      transition: color 0.2s;
+    }
+    nav .links a:hover { color: #f59e0b; }
+
+    /* Header / Hero */
+    header {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 2rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 3.5rem;
+      align-items: center;
+    }
+    .profile-img img {
+      width: 100%;
+      max-width: 280px;
+      border-radius: 16px;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      box-shadow: 0 20px 50px -15px rgba(245, 158, 11, 0.2);
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .profile-img img:hover { transform: scale(1.03); }
+    .hero-text span {
+      display: inline-block;
+      color: #f59e0b;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .hero-text h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.2;
+      color: #f8fafc;
+      margin-bottom: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+    .hero-text h1 em { color: #f59e0b; font-style: normal; }
+    .hero-text p { color: #94a3b8; margin-bottom: 2rem; font-size: 1.02rem; }
+    .btn-group a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+    .btn-primary { background: #f59e0b; color: #070a12; margin-right: 1rem; font-weight: 600; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); }
+    .btn-primary:hover { background: #d97706; transform: translateY(-2px); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(245, 158, 11, 0.4); transform: translateY(-2px); }
+
+    /* Sections */
+    section {
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .section-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: #f59e0b; margin-bottom: 0.5rem; font-weight: 600; }
+    section h2 { font-size: 2rem; color: #f8fafc; margin-bottom: 1.5rem; letter-spacing: -0.01em; }
+
+    /* About Grid */
+    .about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; align-items: start; }
+    .stats-box { display: grid; gap: 1.2rem; }
+    .stat-card { background: rgba(13, 19, 33, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem; border-radius: 12px; backdrop-filter: blur(10px); transition: border-color 0.2s, transform 0.2s; }
+    .stat-card:hover { border-color: rgba(245, 158, 11, 0.4); transform: translateY(-2px); }
+    .stat-card div:first-child { font-size: 1.8rem; font-weight: 700; color: #f59e0b; }
+    .stat-card div:last-child { color: #94a3b8; font-size: 0.88rem; margin-top: 0.2rem; }
+    .about-text p { color: #94a3b8; margin-bottom: 1.2rem; }
+
+    /* Skills Grid with Pop-up effect on hover */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1.2rem;
+      margin-top: 2rem;
+    }
+    .skill-card {
+      background: rgba(13, 19, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1.6rem 1rem;
+      border-radius: 14px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+    }
+    .skill-card:hover {
+      transform: translateY(-8px) scale(1.05);
+      border-color: #f59e0b;
+      box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.25);
+      background: rgba(18, 26, 45, 0.95);
+    }
+    .skill-card img {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 0.6rem;
+      transition: transform 0.3s ease;
+    }
+    .skill-card:hover img {
+      transform: scale(1.2) rotate(5deg);
+    }
+    .skill-card span { display: block; font-size: 0.88rem; color: #e2e8f0; font-weight: 500; }
+
+    /* Projects Grid */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .project-card {
+      background: rgba(13, 19, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .project-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+    .project-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      background: rgba(245, 158, 11, 0.12);
+      color: #f59e0b;
+      margin-bottom: 1rem;
+      width: max-content;
+      font-weight: 600;
+    }
+    .project-card h3 { color: #f8fafc; margin-bottom: 0.75rem; font-size: 1.2rem; }
+    .project-card p { color: #94a3b8; font-size: 0.93rem; margin-bottom: 1.5rem; }
+    .project-tech { display: flex; gap: 0.75rem; align-items: center; }
+    .project-tech img { width: 20px; height: 20px; transition: transform 0.2s; }
+    .project-tech img:hover { transform: scale(1.3); }
+
+    /* Notes & Teaching */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .note-card {
+      background: rgba(13, 19, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1.6rem;
+      border-radius: 14px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .note-card:hover { transform: translateY(-4px); border-color: rgba(245, 158, 11, 0.4); }
+    .note-card h3 { color: #f8fafc; font-size: 1.05rem; margin-bottom: 0.4rem; }
+    .note-card p { color: #94a3b8; font-size: 0.88rem; margin-bottom: 1rem; }
+    .note-card a { color: #f59e0b; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; transition: gap 0.2s; }
+    .note-card a:hover { gap: 8px; }
+
+    /* Footer */
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2rem 2.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      color: #64748b;
+      font-size: 0.88rem;
+    }
+    footer a { color: #f59e0b; }
+
+    .footer-cta {
+      text-align: center;
+      padding-bottom: 3rem;
+    }
+    .footer-cta h2 {
+      color: #f8fafc;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    .footer-cta p {
+      color: #94a3b8;
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+    .footer-contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1.4rem;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.06);
+      border-radius: 999px;
+      color: #f1f5f9 !important;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: all 0.25s ease;
+    }
+    .contact-pill img { width: 20px; height: 20px; }
+    .contact-pill:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.6);
+      transform: translateY(-2px);
+    }
+    .footer-bottom {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Responsive */
+    @media(max-width: 768px) {
+      .hero-content, .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+      nav .links { display: none; }
+      .footer-cta h2 { font-size: 1.4rem; }
+      .contact-pill span { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <nav>
+    <div>
+      <div class="brand">Sourav Kundu</div>
+      <div class="links">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#teaching">Teaching</a>
+        <a href="#notes">Notes</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <header>
+    <div class="hero-content">
+      <div class="profile-img">
+        <img src="Bewerbungsfotos_IntOffice-8.jpg" alt="Sourav Kundu">
+      </div>
+      <div class="hero-text">
+        <span>Applied AI Student · Rosenheim, Germany</span>
+        <h1>Teaching is where I started, <em>building</em> is where I'm headed.</h1>
+        <p>Before I write a line of code, I like to ask <strong>how</strong> and <strong>why</strong> it works, not just accept that it does. Currently learning software design and AI frameworks from the ground up.</p>
+        <div class="btn-group">
+          <a href="#projects" class="btn-primary">See my projects</a>
+          <a href="#contact" class="btn-secondary">Get in touch</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="about">
+    <div class="about-grid">
+      <div class="stats-box">
+        <div class="stat-card">
+          <div>10+</div>
+          <div>Students tutored internationally</div>
+        </div>
+        <div class="stat-card">
+          <div>Top 20%</div>
+          <div>Typical exam outcomes</div>
+        </div>
+        <div class="stat-card">
+          <div>3</div>
+          <div>Languages spoken</div>
+        </div>
+      </div>
+      <div class="about-text">
+        <div class="section-title">About</div>
+        <h2>A tutor who got curious about how things work under the hood.</h2>
+        <p>I'm based in Rosenheim, Germany, currently studying <strong>Applied Artificial Intelligence</strong> at TH Rosenheim. Before that, I spent two years tutoring Mathematics, Physics, and Computer Science online to students preparing for Cambridge examinations.</p>
+        <p>Teaching taught me to break big ideas into small, honest steps, and to never accept "it just works" as an answer. That same instinct—<strong>ask how, ask why, then build</strong>—is what I bring to learning software and AI engineering now.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="section-title">Skills</div>
+    <h2>Tools I work with</h2>
+    <p style="color: #94a3b8;">Hover over the cards below to see them pop up dynamically.</p>
+    
+    <div class="skills-grid">
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/python" alt="Python">
+        <span>Python</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/openjdk" alt="Java">
+        <span>Java</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/git/f05032" alt="Git">
+        <span>Git</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub">
+        <span>GitHub</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/html5/e34f26" alt="HTML5">
+        <span>HTML5</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/css3/1572b6" alt="CSS3">
+        <span>CSS3</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/numpy/013243" alt="NumPy">
+        <span>NumPy</span>
+      </div>
+      <div class="skill-card">
+        <img src="https://cdn.simpleicons.org/jupyter/f37626" alt="Jupyter">
+        <span>Jupyter</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="section-title">Projects</div>
+    <h2>What I'm building</h2>
+    <p style="color: #94a3b8;">Practical implementations from my AI coursework and self-directed programming work.</p>
+
+    <div class="projects-grid">
+      <div class="project-card">
+        <div>
+          <span class="project-badge">Active Dev</span>
+          <h3>Algorithmic Study Assistant</h3>
+          <p>A Python-based tool designed to parse structured notes and generate personalized interactive practice questions for core computer science concepts.</p>
+        </div>
+        <div class="project-tech">
+          <img src="https://cdn.simpleicons.org/python" alt="Python">
+          <img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub">
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div>
+          <span class="project-badge">Object-Oriented</span>
+          <h3>Java Exam Simulator & UML Suite</h3>
+          <p>A structured collection of robust Java classes, exception-handling frameworks, and mock test harnesses built for fundamental OOP revision.</p>
+        </div>
+        <div class="project-tech">
+          <img src="https://cdn.simpleicons.org/openjdk" alt="Java">
+          <img src="https://cdn.simpleicons.org/git/f05032" alt="Git">
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div>
+          <span class="project-badge">Data Science</span>
+          <h3>Matrix Transformation Visualizer</h3>
+          <p>Jupyter notebook workflows exploring linear algebra transformations, eigenvalues, and NumPy array operations visually.</p>
+        </div>
+        <div class="project-tech">
+          <img src="https://cdn.simpleicons.org/numpy/013243" alt="NumPy">
+          <img src="https://cdn.simpleicons.org/jupyter/f37626" alt="Jupyter">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="teaching">
+    <div class="section-title">Teaching</div>
+    <h2>Why I keep coming back to it</h2>
+    <p style="color: #94a3b8;">Two years of tutoring, and what it actually taught me about how to learn.</p>
+    
+    <div class="about-grid" style="margin-top: 2rem;">
+      <div class="about-text">
+        <p>I started tutoring right after my own A-Levels — a friend needed help with calculus, and one session turned into two years of teaching Mathematics, Physics, and Computer Science internationally.</p>
+        <p>What kept me in it wasn't just the subject matter, but the moment a concept finally clicks for someone. I learned to explain the same idea five different ways until one lands. That instinct for finding the <strong>right mental model</strong> is what I bring to writing code today.</p>
+      </div>
+      <div class="stat-card">
+        <h3 style="color: #f8fafc; margin-bottom: 1rem;">At a Glance</h3>
+        <ul style="color: #94a3b8; padding-left: 1.2rem; font-size: 0.95rem; display: grid; gap: 0.5rem;">
+          <li>Tutored international students for O and A-Level exams.</li>
+          <li>Coached IELTS students to target band scores.</li>
+          <li>Built first-principles intuition for Python and pseudocode.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <div class="section-title">Notes</div>
+    <h2>A working library from the whiteboard</h2>
+    <p style="color: #94a3b8;">Explanations that landed with students, organized the way I teach them.</p>
+
+    <div class="notes-grid">
+      <div class="note-card">
+        <h3>Functions, from scratch</h3>
+        <p>The core mental model I give every student before touching an equation.</p>
+        <a href="#notes">Read notes &rarr;</a>
+      </div>
+      <div class="note-card">
+        <h3>Why derivatives, really</h3>
+        <p>Rates of change explained without relying on memorized rules.</p>
+        <a href="#notes">Read notes &rarr;</a>
+      </div>
+      <div class="note-card">
+        <h3>Probability that sticks</h3>
+        <p>The intuitive dice-and-cards approach to conditional probability.</p>
+        <a href="#notes">Read notes &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="footer-cta">
+      <h2>Got an idea worth building?</h2>
+      <p>Interested in collaborating on an idea, a project, or something similar? I'd love to hear about it — reach out here:</p>
+      <div class="footer-contact-links">
+        <a href="mailto:cambridgeoalevels@gmail.com" class="contact-pill">
+          <img src="https://cdn.simpleicons.org/gmail/f59e0b" alt="Email">
+          <span>cambridgeoalevels@gmail.com</span>
+        </a>
+        <a href="https://www.linkedin.com/in/sourav-kundu-77b008412" target="_blank" rel="noopener noreferrer" class="contact-pill">
+          <img src="https://cdn.simpleicons.org/linkedin/f59e0b" alt="LinkedIn">
+          <span>LinkedIn</span>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Sourav Kundu · Rosenheim, Germany</span>
+    </div>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let particles = [];
+
+    const mouse = {
+      x: null,
+      y: null,
+      radius: 180
+    };
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('mouseout', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Generate active glowing floating nodes for a rich wallpaper look
+    const particleCount = Math.floor(window.innerWidth / 25);
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        radius: Math.random() * 2.2 + 1.2
+      });
+    }
+
+    function animate() {
+      // Clear with slight dark fade for trailing motion feel
+      ctx.fillStyle = 'rgba(7, 10, 18, 0.35)';
+      ctx.fillRect(0, 0, width, height);
+
+      particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        // Draw glowing particle node
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.85)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Connect neighboring particles together
+        for (let j = index + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 130) {
+            ctx.strokeStyle = `rgba(245, 158, 11, ${0.25 * (1 - dist / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        // Active connection lines that pop up when the cursor flows over them
+        if (mouse.x !== null && mouse.y !== null) {
+          const mouseDist = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+          if (mouseDist < mouse.radius) {
+            ctx.strokeStyle = `rgba(245, 158, 11, ${0.6 * (1 - mouseDist / mouse.radius)})`;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+          }
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+
+</body>
+</html>
